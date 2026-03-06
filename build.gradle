@@ -1,0 +1,60 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' version '3.2.4' apply false
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'org.omnione.did'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// Spring Boot jar 생성 비활성화 (라이브러리)
+tasks.named('jar') {
+    enabled = true
+    archiveBaseName = 'verifier-sdk'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.4"
+    }
+}
+
+dependencies {
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api'
+
+    // JSON
+    implementation 'com.google.code.gson:gson:2.10.1'
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+
+    // OpenDID Core SDK (VP 검증, DID 관리)
+    implementation fileTree(dir: 'libs', include: ['did-core-sdk-server-2.0.0.jar'])
+    implementation fileTree(dir: 'libs', include: ['did-crypto-sdk-server-2.0.0.jar'])
+    implementation fileTree(dir: 'libs', include: ['did-datamodel-sdk-server-2.0.0.jar'])
+    implementation fileTree(dir: 'libs', include: ['did-sdk-common-2.0.0.jar'])
+
+    // OpenDID ZKP SDK (Zero-Knowledge Proof)
+    implementation fileTree(dir: 'libs', include: ['did-zkp-sdk-server-2.0.0.jar'])
+
+    // Test
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
