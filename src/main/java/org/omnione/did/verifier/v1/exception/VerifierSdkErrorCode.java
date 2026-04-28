@@ -39,6 +39,7 @@ public enum VerifierSdkErrorCode {
     SDK_INVALID_NONCE("SSDKVRF001008", "Invalid nonce.", 400),
     SDK_INVALID_FILTER("SSDKVRF001009", "Invalid filter configuration.", 400),
     SDK_UNAUTHORIZED_CLAIM("SSDKVRF001010", "Unauthorized claim detected.", 400),
+    SDK_INVALID_AUTH_TYPE("SSDKVRF001011", "Invalid authentication type.", 400),
 
     // 2. SDK 프로토콜 오류 (SSDKVRF002xxx)
     SDK_INVALID_PROTOCOL_STEP("SSDKVRF002001", "Invalid protocol step.", 400),

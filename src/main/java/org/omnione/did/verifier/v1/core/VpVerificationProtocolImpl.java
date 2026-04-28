@@ -136,45 +136,37 @@ public class VpVerificationProtocolImpl implements VpVerificationProtocol {
 
     @Override
     public void validateAuthType(VerifiablePresentation vp, Integer requiredAuthType) {
-        if (requiredAuthType == null || requiredAuthType == 0) {
-            return;  // 인증 제한 없음
+        // SDK는 NO_RESTRICTIONS_AUTHENTICATION(0x0)와 PIN_OR_BIO(0x6)만 검증한다.
+        // 그 외 AuthType별 세부 검증은 응용 서버의 책임이다.
+        if (requiredAuthType == null || requiredAuthType == 0x00000000) {
+            return;
         }
 
-        // Proof 개수 확인
-        int proofCount = 0;
-        if (vp.getProofs() != null && !vp.getProofs().isEmpty()) {
-            proofCount = vp.getProofs().size();
-        } else if (vp.getProof() != null) {
-            proofCount = 1;
-        } else {
+        if (requiredAuthType != 0x00000006) {
+            return;
+        }
+
+        if (vp.getProof() == null || vp.getProof().getVerificationMethod() == null) {
             throw new VerifierSdkException(
                 VerifierSdkErrorCode.SDK_INVALID_PROOF,
-                "VP has no proof"
+                "VP proof or verificationMethod is missing"
             );
         }
 
-        // AuthType 검증 로직
-        // 0x00008006: PIN and BIO (2개 proof 필요)
-        // 0x00000006: PIN or BIO (1개 proof 필요)
-        // 0x00000002: PIN (1개 proof 필요)
-        // 0x00000004: BIO (1개 proof 필요)
+        String[] parts = vp.getProof().getVerificationMethod().split("#");
+        if (parts.length < 2) {
+            throw new VerifierSdkException(
+                VerifierSdkErrorCode.SDK_INVALID_AUTH_TYPE,
+                "Invalid verificationMethod format: " + vp.getProof().getVerificationMethod()
+            );
+        }
 
-        if ((requiredAuthType & 0x00008000) != 0) {
-            // AND 조건: 2개 proof 필요
-            if (proofCount < 2) {
-                throw new VerifierSdkException(
-                    VerifierSdkErrorCode.SDK_INVALID_PROOF,
-                    "AuthType requires 2 proofs, but got: " + proofCount
-                );
-            }
-        } else {
-            // OR 조건 또는 단일 인증: 1개 이상 proof 필요
-            if (proofCount < 1) {
-                throw new VerifierSdkException(
-                    VerifierSdkErrorCode.SDK_INVALID_PROOF,
-                    "AuthType requires at least 1 proof, but got: " + proofCount
-                );
-            }
+        String resAuthType = parts[1].toUpperCase();
+        if (!"PIN".equals(resAuthType) && !"BIO".equals(resAuthType)) {
+            throw new VerifierSdkException(
+                VerifierSdkErrorCode.SDK_INVALID_AUTH_TYPE,
+                "AuthType requires PIN or BIO, but got: " + resAuthType
+            );
         }
     }
 
@@ -231,7 +223,7 @@ public class VpVerificationProtocolImpl implements VpVerificationProtocol {
             );
         }
 
-        log.info("Verifying VP toJSON:222 {}", vp.toJson());
+
 
         for (VerifiableCredential vc : vcs) {
             String issuerDid = vc.getIssuer().getId();
@@ -261,7 +253,6 @@ public class VpVerificationProtocolImpl implements VpVerificationProtocol {
             }
 
             try {
-                log.info("Verifying VP toJSON333: {}", vp.toJson());
                 vpManager.verifyPresentation(vp, verifyParam);
             } catch (CoreException e) {
                 log.error("VpManager verification failed for VC ID: {}", vc.getId(), e);
