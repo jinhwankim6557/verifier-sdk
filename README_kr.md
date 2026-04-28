@@ -1,34 +1,34 @@
 # Verifier SDK
 
-> **Version**: 1.0.0  
-> **Status**: Production Ready ✅  
-> **Last Updated**: 2026-02-13
+> **버전**: 1.0.0
+> **상태**: Production Ready ✅
+> **최종 업데이트**: 2026-02-13
 
-A Java SDK for VP (Verifiable Presentation) and ZKP (Zero-Knowledge Proof) verification based on Decentralized Identifiers (DID).
+DID 기반 VP(Verifiable Presentation) 및 ZKP(Zero-Knowledge Proof) 검증을 위한 Java SDK입니다.
 
-## Overview
+## 개요
 
-Verifier SDK is a core library for implementing VP/ZKP verification protocols within the OpenDID ecosystem. It uses the SPI (Service Provider Interface) pattern to allow flexible integration across different environments.
+Verifier SDK는 OpenDID 생태계에서 VP/ZKP 검증 프로토콜을 구현하기 위한 핵심 라이브러리입니다. SPI(Service Provider Interface) 패턴을 사용하여 다양한 환경에 유연하게 적용할 수 있습니다.
 
-## Features
+## 주요 기능
 
-### VP Verification
-- **VP Offer Generation**: QR code-based VP requests (Dynamic/Static)
-- **Verify Profile Generation**: Define verification requirements
-- **VP Verification**: E2E decryption, signature verification, VC status check
-- **Verification Confirmation**: Claim extraction and result return
+### VP 검증
+- **VP Offer 생성**: QR 코드 기반 VP 요청 (Dynamic/Static)
+- **Verify Profile 생성**: 검증 요구사항 정의
+- **VP 검증**: E2E 복호화, 서명 검증, VC 상태 확인
+- **검증 확인**: 클레임 추출 및 결과 반환
 
-### ZKP Verification ✨
-- **ProofRequestProfile Generation**: Define ZKP verification requests
-- **ZKP Proof Verification**: Zero-knowledge proof verification (anonymous verification)
-- **Revealed Attributes Extraction**: Return disclosed attributes
+### ZKP 검증 ✨
+- **ProofRequestProfile 생성**: ZKP 검증 요청 정의
+- **ZKP Proof 검증**: 영지식 증명 검증 (익명 검증)
+- **Revealed Attributes 추출**: 공개된 속성 반환
 
-## Requirements
+## 요구사항
 
 - Java 21+
-- Spring Boot 3.2.x (recommended)
+- Spring Boot 3.2.x (권장)
 
-## Installation
+## 설치
 
 ### Gradle
 
@@ -52,23 +52,23 @@ dependencies {
 </dependency>
 ```
 
-## Quick Start
+## 빠른 시작
 
-### 1. Implement the SPI Interfaces
+### 1. 인터페이스 구현
 
-To use the SDK, you need to implement 7 SPI interfaces:
+SDK를 사용하려면 7개의 SPI 인터페이스를 구현해야 합니다:
 
-| Interface | Role |
+| 인터페이스 | 역할 |
 |-----------|------|
-| `VerificationConfigProvider` | Provides verification policies |
-| `VerifierInfoProvider` | Provides Verifier metadata |
-| `E2eSessionProvider` | Manages E2E encryption sessions |
-| `StorageService` | VP/VC storage |
-| `TransactionManager` | Transaction management |
-| `NonceGenerator` | Nonce generation |
-| `CryptoHelper` | Cryptographic utilities |
+| `VerificationConfigProvider` | 검증 정책 제공 |
+| `VerifierInfoProvider` | Verifier 메타정보 제공 |
+| `E2eSessionProvider` | E2E 암호화 세션 관리 |
+| `StorageService` | VP/VC 저장소 |
+| `TransactionManager` | 트랜잭션 관리 |
+| `NonceGenerator` | Nonce 생성 |
+| `CryptoHelper` | 암호화 유틸리티 |
 
-### 2. Create VerifierService
+### 2. VerifierService 생성
 
 ```java
 @Configuration
@@ -97,9 +97,9 @@ public class VerifierSdkConfig {
 }
 ```
 
-### 3. Using the API
+### 3. API 사용
 
-#### VP Verification Example
+#### VP 검증 예제
 
 ```java
 @Service
@@ -107,33 +107,33 @@ public class MyVerificationService {
 
     private final VerifierService verifierService;
 
-    // 1. Create VP Offer
+    // 1. VP Offer 생성
     public VpOfferPayload createOffer(String policyId) {
         return verifierService.createVpOfferPayload(
             policyId, "device-001", "login-service", false
         );
     }
 
-    // 2. Create Verify Profile
+    // 2. Verify Profile 생성
     public VerificationProfile createProfile(String policyId, ReqE2e reqE2e) {
         return verifierService.createVerifyProfile(
             policyId, UUID.randomUUID().toString(), reqE2e
         );
     }
 
-    // 3. Verify VP
+    // 3. VP 검증
     public String verifyVp(VpVerificationRequest request) {
         return verifierService.verifyPresentation(request);
     }
 
-    // 4. Confirm Verification
+    // 4. 검증 확인
     public VerificationConfirmResult confirm(String txId, String vpJson) {
         return verifierService.confirmVerification(txId, vpJson, true);
     }
 }
 ```
 
-#### ZKP Verification Example ✨
+#### ZKP 검증 예제 ✨
 
 ```java
 @Service
@@ -141,35 +141,34 @@ public class MyZkpVerificationService {
 
     private final VerifierService verifierService;
 
-    // 1. Create ZKP ProofRequestProfile
+    // 1. ZKP ProofRequestProfile 생성
     public ProofRequestProfile createZkpProfile(ProofRequestProfileRequest request) {
         return verifierService.createZkpProofRequestProfile(request);
     }
 
-    // 2. Verify ZKP Proof
+    // 2. ZKP Proof 검증
     public ZkpVerificationResult verifyZkpProof(ZkpVerificationRequest request) {
         return verifierService.verifyZkpProof(request);
     }
 
-    // 3. Decrypt ZKP Proof
+    // 3. ZKP Proof 복호화
     public String decryptZkpProof(String encProof, String txId, AccE2e accE2e) {
         return verifierService.decryptZkpProof(encProof, txId, accE2e);
     }
 }
 ```
 
-## Documentation
+## 문서
 
 - [SDK Guide (English)](SDK_GUIDE.md)
-- [SDK Guide (Korean)](SDK_GUIDE_kr.md)
-- [README (Korean)](README_kr.md)
+- [SDK Guide (한국어)](SDK_GUIDE_kr.md)
 
-## Project Structure
+## 프로젝트 구조
 
 ```
 verifier-sdk/
 ├── src/main/java/org/omnione/did/verifier/v1/
-│   ├── api/          # SPI Interfaces (7)
+│   ├── api/          # SPI 인터페이스 (7개)
 │   │   ├── E2eSessionProvider.java
 │   │   ├── StorageService.java
 │   │   ├── CryptoHelper.java
@@ -177,42 +176,42 @@ verifier-sdk/
 │   │   ├── VerificationConfigProvider.java
 │   │   ├── VerifierInfoProvider.java
 │   │   └── NonceGenerator.java
-│   ├── service/      # Core Services (6)
+│   ├── service/      # 핵심 서비스 (6개)
 │   │   ├── VerifierService.java             # Facade
 │   │   ├── VpOfferService.java
 │   │   ├── VpProfileService.java
 │   │   ├── VpVerificationService.java
 │   │   ├── VerificationConfirmService.java
 │   │   └── ZkpProofVerificationService.java  # ZKP ✨
-│   ├── dto/          # Data Transfer Objects (16)
-│   └── exception/    # Exception Classes (7)
+│   ├── dto/          # 데이터 전송 객체 (16개)
+│   └── exception/    # 예외 클래스 (7개)
 ├── docs/
 │   └── SDK_GUIDE.md
 └── build.gradle
 ```
 
-### Statistics
+### 통계
 
-| Item | Count |
-|------|-------|
-| Java Files | 36 |
-| Lines of Code | 3,220 |
-| SPI Interfaces | 7 |
-| Core Services | 6 (VP ×4 + ZKP ×2) |
-| DTOs | 16 |
-| Exceptions | 7 |
+| 항목 | 수량 |
+|------|------|
+| Java 파일 | 36개 |
+| 코드 라인 | 3,220 lines |
+| SPI 인터페이스 | 7개 |
+| 핵심 서비스 | 6개 (VP 4개 + ZKP 2개) |
+| DTO | 16개 |
+| Exception | 7개 |
 
-## Production Usage
+## 실전 적용 사례
 
-This SDK is used in production within the **OpenDID Verifier Server**:
+이 SDK는 **OpenDID Verifier Server**에서 프로덕션 환경에 적용되어 있습니다:
 
-- **Application**: `ApplicationVerifierServiceImpl` (default implementation)
-- **Adapters**: 7 Adapter implementations for SDK integration
-- **Test Coverage**: 13 integration tests passing at 100%
-- **Performance**: VP verification ~100–200ms, ZKP verification ~300–500ms
+- **Application**: `ApplicationVerifierServiceImpl` (기본 구현)
+- **Adapters**: 7개 Adapter 구현으로 SDK 연동
+- **Test Coverage**: 13개 통합 테스트 100% 통과
+- **성능**: VP 검증 약 100-200ms, ZKP 검증 약 300-500ms
 
 ```java
-// ApplicationVerifierServiceImpl.java example
+// ApplicationVerifierServiceImpl.java 예제
 @Service
 public class ApplicationVerifierServiceImpl implements ApplicationVerifierService {
 
@@ -226,16 +225,16 @@ public class ApplicationVerifierServiceImpl implements ApplicationVerifierServic
 }
 ```
 
-## License
+## 라이선스
 
-This project is distributed under the [Apache License 2.0](LICENSE).
+이 프로젝트는 [Apache License 2.0](LICENSE) 하에 배포됩니다.
 
-## Contributing
+## 기여
 
-Bug reports and feature requests can be submitted via [GitHub Issues](https://github.com/jinhwankim6557/verifier-sdk/issues).
+버그 리포트 및 기능 제안은 [GitHub Issues](https://github.com/jinhwankim6557/verifier-sdk/issues)를 통해 제출해 주세요.
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2026-02-13  
-**Status**: ✅ Production Ready
+**버전**: 1.0.0  
+**최종 업데이트**: 2026-02-13  
+**상태**: ✅ Production Ready

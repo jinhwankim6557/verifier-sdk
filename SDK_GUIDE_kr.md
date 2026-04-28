@@ -6,56 +6,55 @@
 
 ---
 
-## Table of Contents
+## 목차
 
-1. [Overview](#overview)
-2. [SDK Architecture](#sdk-architecture)
-3. [API Interfaces](#api-interfaces)
-4. [Service Layer](#service-layer)
-5. [Data Flow](#data-flow)
-6. [DTO Reference](#dto-reference)
-7. [Usage Examples](#usage-examples)
-8. [Deployment](#deployment)
-
----
-
-## Overview
-
-### What is the Verifier SDK?
-
-Verifier SDK is a **reusable library that abstracts the VP (Verifiable Presentation) verification protocol**.
-
-### Goals
-
-- ✅ Separate VP verification business logic from the Application layer
-- ✅ Reuse the same verification protocol across multiple applications
-- ✅ Flexible implementation via interface-based (SPI) design
-- ✅ Independent JAR distribution and version management
-
-### Core Operations
-
-1. **VP Offer Generation** — Create Offer Payload for QR codes
-2. **Verify Profile Generation** — Create Profile for VP requests
-3. **VP Verification** — E2E decryption, signature verification, VC validation
-4. **Verification Confirmation** — Claim extraction and result return
+1. [개요](#개요)
+2. [SDK 아키텍처](#sdk-아키텍처)
+3. [API 인터페이스](#api-인터페이스)
+4. [서비스 계층](#서비스-계층)
+5. [데이터 플로우](#데이터-플로우)
+6. [DTO 구조](#dto-구조)
+7. [사용 예제](#사용-예제)
 
 ---
 
-## SDK Architecture
+## 개요
 
-### Overall Structure
+### SDK란?
+
+Verifier SDK는 **VP(Verifiable Presentation) 검증 프로토콜을 추상화한 재사용 가능한 라이브러리**입니다.
+
+### 주요 목적
+
+- ✅ VP 검증 비즈니스 로직을 Application으로부터 분리
+- ✅ 다양한 Application에서 동일한 검증 프로토콜 재사용
+- ✅ 인터페이스 기반 설계로 유연한 구현 가능
+- ✅ 독립적인 JAR 배포 및 버전 관리
+
+### 핵심 기능
+
+1. **VP Offer 생성** - QR 코드용 Offer Payload 생성
+2. **Verify Profile 생성** - VP 요청을 위한 Profile 생성
+3. **VP 검증** - E2E 복호화, 서명 검증, VC 검증
+4. **검증 확인** - 클레임 추출 및 결과 반환
+
+---
+
+## SDK 아키텍처
+
+### 전체 구조
 
 ```mermaid
 graph TB
     subgraph "SDK Layer"
-        API[API Interfaces<br/>7 interfaces]
-        Service[Service Layer<br/>5 services]
-        DTO[DTO Layer<br/>Request/Response objects]
-        Exception[Exception Layer<br/>Custom exceptions]
+        API[API Interfaces<br/>7개 인터페이스]
+        Service[Service Layer<br/>5개 서비스]
+        DTO[DTO Layer<br/>요청/응답 객체]
+        Exception[Exception Layer<br/>커스텀 예외]
     end
 
     subgraph "Application Layer"
-        Adapter[Adapter Implementations<br/>7 Adapters]
+        Adapter[Adapter 구현<br/>7개 Adapter]
         AppService[Application Service]
         DB[(Database)]
     end
@@ -71,20 +70,20 @@ graph TB
     style Adapter fill:#e8f5e9
 ```
 
-### Layer Responsibilities
+### 계층별 역할
 
-| Layer | Role | Location |
-|-------|------|----------|
-| **API** | Interface definitions | `src/main/java/org/omnione/did/verifier/v1/api/` |
-| **Service** | Business logic | `src/main/java/org/omnione/did/verifier/v1/service/` |
-| **DTO** | Data transfer objects | `src/main/java/org/omnione/did/verifier/v1/dto/` |
-| **Exception** | Exception definitions | `src/main/java/org/omnione/did/verifier/v1/exception/` |
+| 계층 | 역할 | 파일 위치 |
+|------|------|----------|
+| **API** | 인터페이스 정의 | `src/main/java/org/omnione/did/verifier/v1/api/` |
+| **Service** | 비즈니스 로직 구현 | `src/main/java/org/omnione/did/verifier/v1/service/` |
+| **DTO** | 데이터 전송 객체 | `src/main/java/org/omnione/did/verifier/v1/dto/` |
+| **Exception** | 예외 정의 | `src/main/java/org/omnione/did/verifier/v1/exception/` |
 
 ---
 
-## API Interfaces
+## API 인터페이스
 
-### 7 Core Interfaces
+### 7개 핵심 인터페이스
 
 ```mermaid
 classDiagram
@@ -131,41 +130,34 @@ classDiagram
     }
 ```
 
-### Interface Details
+### 인터페이스 상세
 
 #### 1. VerificationConfigProvider
 
-**Purpose**: Provide VP verification policies
+**목적**: VP 검증 정책 제공
 
 ```java
 public interface VerificationConfigProvider {
-    // Retrieve a policy by ID
     VerificationPolicy getPolicy(String policyId);
-
-    // Check if a policy exists
     boolean existsPolicy(String policyId);
 }
 ```
 
-**Implementation requirements**:
-- Fetch policy data from a database or file
-- Policy must include Filter, Process, and Endpoint information
+**구현 요구사항**:
+- Policy 데이터를 DB 또는 파일에서 조회
+- Filter, Process, Endpoint 정보 포함
 
 ---
 
 #### 2. TransactionManager
 
-**Purpose**: Manage transaction lifecycle
+**목적**: Transaction 생명주기 관리
 
 ```java
 public interface TransactionManager {
-    // Create a new transaction ID (UUID)
     String createTransactionId();
-
-    // Convert transaction ID string to Long PK
     Long getTransactionId(String txId);
 
-    // Deprecated: manage state directly via DB in the Application layer
     @Deprecated
     void saveTransactionState(String txId, String state);
 
@@ -174,53 +166,40 @@ public interface TransactionManager {
 }
 ```
 
-> **Note**: `saveTransactionState` and `getTransactionState` are deprecated.  
-> Manage transaction state directly through the database in your Application to prevent memory leaks.
+> **참고**: `saveTransactionState`, `getTransactionState`는 더 이상 사용되지 않습니다.  
+> 메모리 누수 방지를 위해 Application에서 DB를 통해 직접 상태를 관리하세요.
 
 ---
 
 #### 3. E2eSessionProvider
 
-**Purpose**: Manage E2E encryption sessions
+**목적**: E2E 암호화 세션 관리
 
 ```java
 public interface E2eSessionProvider {
-    // Create an E2E session (key pair + nonce)
     ReqE2e createSession(String txId);
-
-    // Retrieve an existing E2E session
     ReqE2e getSession(String txId);
-
-    // Decrypt the VP using ECDH protocol
-    String decrypt(String txId, String encHolderPublicKey,
-                   String encVp, String iv);
-
-    // Remove an E2E session
+    String decrypt(String txId, String encHolderPublicKey, String encVp, String iv);
     void removeSession(String txId);
 }
 ```
 
-**`decrypt()` — ECDH Protocol**:
-1. Decode `encHolderPublicKey` → extract Holder public key
-2. ECDH: Verifier private key + Holder public key → shared secret
-3. Session key = KDF(shared secret + nonce)
-4. Decrypt VP using session key and IV
+**`decrypt()` ECDH 프로토콜**:
+1. `encHolderPublicKey` 복호화 → Holder 공개키 추출
+2. ECDH: Verifier 개인키 + Holder 공개키 → 공유 비밀키
+3. 세션키 = KDF(공유 비밀키 + nonce)
+4. VP 복호화
 
 ---
 
 #### 4. VerifierInfoProvider
 
-**Purpose**: Provide Verifier identity information
+**목적**: Verifier 정보 제공
 
 ```java
 public interface VerifierInfoProvider {
-    // Basic Verifier information
     ProviderDetail getVerifierInfo();
-
-    // Verifier DID Document (JSON)
     String getVerifierDidDocument();
-
-    // Verifier DID string
     String getVerifierDid();
 }
 ```
@@ -229,17 +208,12 @@ public interface VerifierInfoProvider {
 
 #### 5. StorageService
 
-**Purpose**: Retrieve DID Documents and VC Metadata
+**목적**: DID Document 및 VC Meta 조회
 
 ```java
 public interface StorageService {
-    // Retrieve DID Document (JSON)
     String findDidDocument(String did);
-
-    // Retrieve VC Metadata (JSON)
     String getVcMeta(String vcId);
-
-    // Check if a DID Document exists
     boolean existsDidDocument(String did);
 }
 ```
@@ -248,17 +222,12 @@ public interface StorageService {
 
 #### 6. CryptoHelper
 
-**Purpose**: Cryptographic utility operations
+**목적**: 암호화 유틸리티
 
 ```java
 public interface CryptoHelper {
-    // Verify a digital signature
     boolean verifySignature(String publicKey, String signature, byte[] data);
-
-    // Compute SHA-256 hash
     String sha256(byte[] data);
-
-    // Decode a multibase-encoded string
     byte[] decodeMultibase(String multibase);
 }
 ```
@@ -267,23 +236,20 @@ public interface CryptoHelper {
 
 #### 7. NonceGenerator
 
-**Purpose**: Generate nonce values
+**목적**: Nonce 생성
 
 ```java
 public interface NonceGenerator {
-    // Generate a default nonce (16 bytes)
     String generateNonce();
-
-    // Generate a nonce of a custom length
     String generateNonce(int length);
 }
 ```
 
 ---
 
-## Service Layer
+## 서비스 계층
 
-### Core Services
+### 5개 핵심 서비스
 
 ```mermaid
 graph LR
@@ -312,7 +278,7 @@ graph LR
 
 ### 1. VerifierService (Facade)
 
-**Role**: SDK entry point; orchestrates other services
+**역할**: SDK 진입점, 다른 서비스들을 조합
 
 ```java
 public class VerifierService {
@@ -333,23 +299,17 @@ public class VerifierService {
 
 ### 2. VpOfferService
 
-**Responsibility**: Generate VP Offer Payload
+**책임**: VP Offer Payload 생성
 
 ```java
 public VpOfferPayload createVpOfferPayload(
     String policyId, String device, String service, boolean locked) {
 
-    // 1. Retrieve policy
     VerificationPolicy policy = configProvider.getPolicy(policyId);
-
-    // 2. Generate Offer ID
     String offerId = transactionManager.createTransactionId();
-
-    // 3. Calculate ValidUntil
     Instant validUntil = Instant.now()
         .plus(policy.getValidityDuration(), ChronoUnit.SECONDS);
 
-    // 4. Return payload
     return VpOfferPayload.builder()
         .offerId(offerId)
         .type("VerifyOffer")
@@ -364,22 +324,16 @@ public VpOfferPayload createVpOfferPayload(
 
 ### 3. VpProfileService
 
-**Responsibility**: Generate Verify Profile
+**책임**: Verify Profile 생성
 
 ```java
 public VerificationProfile createVerifyProfile(
     String policyId, String profileId, ReqE2e reqE2e) {
 
-    // 1. Retrieve policy
     VerificationPolicy policy = configProvider.getPolicy(policyId);
-
-    // 2. Retrieve Verifier info
     ProviderDetail verifierInfo = verifierInfoProvider.getVerifierInfo();
-
-    // 3. Generate Verifier nonce
     String verifierNonce = nonceGenerator.generateNonce();
 
-    // 4. Build Profile (Proof is added by the Application)
     return VerificationProfile.builder()
         .id(profileId)
         .type("VerifyProfile")
@@ -399,11 +353,11 @@ public VerificationProfile createVerifyProfile(
 
 ### 4. VpVerificationService
 
-**Responsibility**: Verify VP (decryption, signatures, VC status)
+**책임**: VP 검증 (복호화, 서명, VC 상태)
 
 ```java
 public String verifyPresentation(VpVerificationRequest request) {
-    // 1. Decrypt VP (ECDH protocol)
+    // 1. VP 복호화 (ECDH 프로토콜)
     String vpJson = decryptVp(
         request.getTxId(),
         request.getEncHolderPublicKey(),
@@ -411,22 +365,22 @@ public String verifyPresentation(VpVerificationRequest request) {
         request.getIv()
     );
 
-    // 2. Parse VP
+    // 2. VP 파싱
     JsonObject vpObject = gson.fromJson(vpJson, JsonObject.class);
 
-    // 3. Validate AuthType
+    // 3. AuthType 검증
     validateAuthType(vpObject, request.getRequiredAuthType());
 
-    // 4. Validate Nonce
+    // 4. Nonce 검증
     validateNonce(vpObject, request.getVerifierNonce());
 
-    // 5. Verify VP signature
+    // 5. VP 서명 검증
     validateVpSignature(vpObject);
 
-    // 6. Verify VC signatures
+    // 6. VC 서명 검증
     validateVcSignatures(vpObject);
 
-    // 7. Verify VC statuses
+    // 7. VC 상태 검증
     validateVcStatuses(vpObject);
 
     return vpJson;
@@ -437,7 +391,7 @@ public String verifyPresentation(VpVerificationRequest request) {
 
 ### 5. VerificationConfirmService
 
-**Responsibility**: Extract claims and return the verification result
+**책임**: 클레임 추출 및 결과 반환
 
 ```java
 public VerificationConfirmResult confirmVerification(
@@ -452,14 +406,8 @@ public VerificationConfirmResult confirmVerification(
     }
 
     JsonObject vpObject = gson.fromJson(vpJson, JsonObject.class);
-
-    // Extract Holder DID
     String holderDid = extractHolderDid(vpObject);
-
-    // Extract submitted VCs as a Map
     Map<String, Object> submittedVcs = extractSubmittedVcsAsMap(vpObject);
-
-    // Extract claims
     Map<String, Object> extractedClaims = extractClaims(vpObject);
 
     return VerificationConfirmResult.builder()
@@ -474,65 +422,65 @@ public VerificationConfirmResult confirmVerification(
 
 ---
 
-## Data Flow
+## 데이터 플로우
 
-### Full VP Verification Sequence
+### VP 검증 전체 시퀀스
 
 ```mermaid
 sequenceDiagram
-    participant H as Holder (Mobile)
+    participant H as Holder (모바일)
     participant A as Application
     participant S as SDK
     participant BC as Blockchain
     participant DB as Database
 
     rect rgb(230, 240, 255)
-        Note over H,DB: 1. VP Offer Generation
+        Note over H,DB: 1. VP Offer 생성
         A->>S: createVpOfferPayload(policyId)
         S->>A: getPolicy(policyId)
         A-->>S: VerificationPolicy
         S->>A: createTransactionId()
         A-->>S: offerId
         S-->>A: VpOfferPayload
-        A->>DB: Save VpOffer
+        A->>DB: VpOffer 저장
     end
 
     rect rgb(240, 255, 230)
-        Note over H,DB: 2. Profile Generation
-        H->>A: QR scan, request Profile
+        Note over H,DB: 2. Profile 생성
+        H->>A: QR 스캔, Profile 요청
         A->>S: createSession(txId)
         A-->>S: ReqE2e (publicKey, nonce, cipher)
         A->>S: createVerifyProfile(policyId, profileId, reqE2e)
-        S-->>A: VerificationProfile (without Proof)
-        A->>A: Sign Proof
+        S-->>A: VerificationProfile (Proof 제외)
+        A->>A: Proof 서명 생성
         A-->>H: VerificationProfile
     end
 
     rect rgb(255, 240, 230)
-        Note over H,DB: 3. VP Verification
-        H->>H: Create and E2E-encrypt VP
-        H->>A: Submit VP (encVp, encHolderPublicKey, iv)
+        Note over H,DB: 3. VP 검증
+        H->>H: VP 생성 및 E2E 암호화
+        H->>A: VP 제출 (encVp, encHolderPublicKey, iv)
         A->>S: verifyPresentation(VpVerificationRequest)
         S->>A: decrypt(txId, encHolderPubKey, encVp, iv)
-        A->>A: ECDH decrypt VP
-        A-->>S: vpJson (plaintext)
-        S->>S: Validate VP/VC signatures and statuses
-        S-->>A: vpJson (verified)
-        A->>DB: Save VpSubmit
+        A->>A: ECDH 프로토콜로 VP 복호화
+        A-->>S: vpJson (평문)
+        S->>S: VP/VC 서명 및 상태 검증
+        S-->>A: vpJson (검증 완료)
+        A->>DB: VpSubmit 저장
     end
 
     rect rgb(255, 230, 240)
-        Note over H,DB: 4. Verification Confirmation
+        Note over H,DB: 4. 검증 확인
         A->>S: confirmVerification(txId, vpJson, verified)
-        S->>S: Extract Holder DID / VCs / Claims
+        S->>S: Holder DID / VC 목록 / 클레임 추출
         S-->>A: VerificationConfirmResult
-        A-->>H: Verification complete
+        A-->>H: 검증 완료
     end
 ```
 
 ---
 
-## DTO Reference
+## DTO 구조
 
 ### VpVerificationRequest
 
@@ -540,12 +488,12 @@ sequenceDiagram
 @Getter
 @Builder
 public class VpVerificationRequest {
-    private String txId;                // Transaction ID
-    private String encHolderPublicKey;  // Encrypted Holder public key
-    private String encVp;               // Encrypted VP
-    private String iv;                  // Initialization vector
-    private String verifierNonce;       // Nonce included in the Verify Profile
-    private Integer requiredAuthType;   // Required authentication type
+    private String txId;
+    private String encHolderPublicKey;
+    private String encVp;
+    private String iv;
+    private String verifierNonce;
+    private Integer requiredAuthType;
 }
 ```
 
@@ -557,13 +505,13 @@ public class VpVerificationRequest {
 @Getter
 @Builder
 public class VerificationConfirmResult {
-    private String txId;                         // Transaction ID
-    private Boolean verified;                    // Verification success flag
-    private String holderDid;                    // Holder DID
-    private Map<String, Object> submittedVcs;    // Submitted VCs
-    private Map<String, Object> extractedClaims; // Extracted claims
-    private Instant verifiedAt;                  // Verification timestamp
-    private String errorMessage;                 // Error message (if any)
+    private String txId;
+    private Boolean verified;
+    private String holderDid;
+    private Map<String, Object> submittedVcs;
+    private Map<String, Object> extractedClaims;
+    private Instant verifiedAt;
+    private String errorMessage;
 }
 ```
 
@@ -575,22 +523,22 @@ public class VerificationConfirmResult {
 @Getter
 @Builder
 public class VpOfferPayload {
-    private String offerId;           // Offer ID
-    private String type;              // "VerifyOffer"
-    private String mode;              // "Direct" | "Indirect"
-    private String device;            // Device identifier
-    private String service;           // Service identifier
-    private List<String> endpoints;   // API endpoint list
-    private Instant validUntil;       // Expiry time
-    private Boolean locked;           // Locked flag
+    private String offerId;
+    private String type;
+    private String mode;
+    private String device;
+    private String service;
+    private List<String> endpoints;
+    private Instant validUntil;
+    private Boolean locked;
 }
 ```
 
 ---
 
-## Usage Examples
+## 사용 예제
 
-### 1. Initialize the SDK
+### 1. SDK 초기화
 
 ```java
 VerificationConfigProvider configProvider =
@@ -615,14 +563,14 @@ VerifierService verifierService = new VerifierService(
 
 ---
 
-### 2. Create a VP Offer
+### 2. VP Offer 생성
 
 ```java
 VpOfferPayload payload = verifierService.createVpOfferPayload(
-    "policy-001",  // policyId
-    "mobile-app",  // device
-    "kyc-service", // service
-    false          // locked
+    "policy-001",
+    "mobile-app",
+    "kyc-service",
+    false
 );
 
 vpOfferRepository.save(VpOffer.builder()
@@ -635,7 +583,7 @@ vpOfferRepository.save(VpOffer.builder()
 
 ---
 
-### 3. Verify a VP
+### 3. VP 검증
 
 ```java
 VpVerificationRequest request = VpVerificationRequest.builder()
@@ -658,19 +606,18 @@ vpSubmitRepository.save(VpSubmit.builder()
 
 ---
 
-### 4. Confirm Verification
+### 4. 검증 확인
 
 ```java
 VerificationConfirmResult result = verifierService.confirmVerification(
     txId,
     vpJson,
-    true  // verified
+    true
 );
 
 if (result.getVerified()) {
     String holderDid = result.getHolderDid();
     Map<String, Object> claims = result.getExtractedClaims();
-
     String name = (String) claims.get("name");
     String birthDate = (String) claims.get("birthDate");
 }
@@ -678,18 +625,16 @@ if (result.getVerified()) {
 
 ---
 
-## Deployment
+## 배포 가이드
 
-### Build the JAR
+### JAR 빌드
 
 ```bash
-# Build SDK JAR only
 ./gradlew :verifier-sdk:jar
-
-# Output: build/libs/verifier-sdk-1.0.0.jar
+# 결과: build/libs/verifier-sdk-1.0.0.jar
 ```
 
-### Add as a Dependency
+### 의존성 추가
 
 ```gradle
 dependencies {
@@ -697,17 +642,15 @@ dependencies {
 }
 ```
 
-### Minimum Requirements
+### 최소 요구사항
 
-| Requirement | Version |
-|-------------|---------|
-| Java | 21+ |
-| Spring Boot | 3.2.4+ |
-| Gson | 2.10+ |
+- **Java**: 21+
+- **Spring Boot**: 3.2.4+
+- **Gson**: 2.10+
 
 ---
 
-## License
+## 라이선스
 
 Apache License 2.0
 
