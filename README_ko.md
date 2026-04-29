@@ -160,8 +160,10 @@ public class MyZkpVerificationService {
 
 ## 문서
 
-- [SDK Guide (English)](SDK_GUIDE.md)
-- [SDK Guide (한국어)](SDK_GUIDE_kr.md)
+- [SDK 가이드](docs/api/VERIFIER_SDK-SDK_GUIDE_ko.md)
+- [Server API 레퍼런스](docs/api/VERIFIER_SDK-SERVER_API_ko.md)
+- [Server API Reference (English)](docs/api/VERIFIER_SDK-SERVER_API.md)
+- [에러 코드](docs/api/VerifierSDKError.md)
 
 ## 프로젝트 구조
 

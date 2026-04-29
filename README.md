@@ -160,9 +160,11 @@ public class MyZkpVerificationService {
 
 ## Documentation
 
-- [SDK Guide (English)](SDK_GUIDE.md)
-- [SDK Guide (Korean)](SDK_GUIDE_kr.md)
-- [README (Korean)](README_kr.md)
+- [SDK Guide (Korean)](docs/api/VERIFIER_SDK-SDK_GUIDE_ko.md)
+- [Server API Reference](docs/api/VERIFIER_SDK-SERVER_API.md)
+- [Server API Reference (Korean)](docs/api/VERIFIER_SDK-SERVER_API_ko.md)
+- [Error Codes](docs/api/VerifierSDKError.md)
+- [README (Korean)](README_ko.md)
 
 ## Project Structure
 
